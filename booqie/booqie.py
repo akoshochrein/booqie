@@ -27,7 +27,7 @@ def main():
         match_rate = fuzz.ratio(search_term.lower(), title.lower())
 
         try:
-            price = ' '.join(info.select('p.price')[0].text.encode('ascii', 'ignore').split()[:2])
+            price = '{0:.2f}'.format(float(info.select('p.price')[0].text.encode('ascii', 'ignore').split()[0]))
         except IndexError:
             price = '????'
 
@@ -59,7 +59,7 @@ def main():
                 author = '????'
 
             try:
-                price = price_base_select[0].text
+                price = '{0:.2f}'.format(float(price_base_select[0].text.encode('ascii', 'ignore')))
             except IndexError:
                 price = '????'
 
@@ -70,6 +70,16 @@ def main():
                 price=price
             ))
 
+    def book_filter(b):
+        if b.price == '????':
+            return False
+        if float(b.price) <= 0:
+            return False
+        if int(b.match_rate) < 70:
+            return False
+        return True
+
+    result_books = filter(book_filter, result_books)
     print result_books
 
 
