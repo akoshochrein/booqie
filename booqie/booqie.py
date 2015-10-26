@@ -6,37 +6,20 @@ from bs4 import BeautifulSoup
 from collections import namedtuple
 from fuzzywuzzy import fuzz
 
+from providers.bookdepository import ProviderBookDepository
+
+
 def main():
 
-    Book = namedtuple('Book', ['title', 'author', 'match_rate', 'price'])
     search_term = sys.argv[1]
     result_books = []
 
     # bookdepository
-    url_template = 'http://www.bookdepository.com/search?searchTerm={search_term}&search=Find+book'
-    response = requests.get(url_template.format(
+    book_depository = ProviderBookDepository(
+        url_template='http://www.bookdepository.com/search?searchTerm={search_term}&search=Find+book',
         search_term=search_term
-    ))
-    soup = BeautifulSoup(response.text, 'lxml')
-    raw_books = soup.select('div.book-item')
-
-    for raw_book in raw_books:
-        info = raw_book.select('.item-info')[0]
-        title = info.select('h3.title a')[0].text.strip()
-        author = info.select('p.author')[0].text.strip()
-        match_rate = fuzz.ratio(search_term.lower(), title.lower())
-
-        try:
-            price = '{0:.2f}'.format(float(info.select('p.price')[0].text.encode('ascii', 'ignore').split()[0]))
-        except IndexError:
-            price = '????'
-
-        result_books.append(Book(
-            title=title,
-            author=author,
-            match_rate=match_rate,
-            price=price
-        ))
+    )
+    result_books += book_depository.books
 
     # amazon.co.uk
     url_template = 'http://www.amazon.co.uk/s/ref=nb_sb_noss_2?url=search-alias%3Dstripbooks&field-keywords={search_term}'
@@ -63,19 +46,19 @@ def main():
             except IndexError:
                 price = '????'
 
-            result_books.append(Book(
-                title=title,
-                author=author,
-                match_rate=match_rate,
-                price=price
-            ))
+            result_books.append({
+                'title': title,
+                'author': author,
+                'match_rate': match_rate,
+                'price': price
+            })
 
     def book_filter(b):
-        if b.price == '????':
+        if b['price'] == '????':
             return False
-        if float(b.price) <= 0:
+        if float(b['price']) <= 0:
             return False
-        if int(b.match_rate) < 70:
+        if int(b['match_rate']) < 70:
             return False
         return True
 

@@ -1,4 +1,5 @@
 BeautifulSoup4
+cached-property
 fuzzywuzzy
 lxml
 python-Levenshtein
