@@ -5,6 +5,11 @@ from fuzzywuzzy import fuzz
 
 class ProviderBookDepository(ProviderBase):
 
+    def __init__(self, search_term):
+        url_template = 'http://www.bookdepository.com/search?searchTerm={search_term}&search=Find+book'
+        super(ProviderBookDepository, self).__init__(url_template, search_term)
+        self.raw_books = self.soup.select('div.book-item')
+
     @cached_property
     def books(self):
         result_books = []

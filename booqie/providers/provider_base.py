@@ -11,7 +11,6 @@ class ProviderBase(object):
         self.search_term = search_term
         response = requests.get(url_template.format(search_term=search_term))
         self.soup = BeautifulSoup(response.text, 'lxml')
-        self.raw_books = self.soup.select('div.book-item')
 
     @cached_property
     def books(self):
